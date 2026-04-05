@@ -27,6 +27,7 @@ $currentPage = 'signatures';
     <link rel="icon" type="image/png" href="https://sign.groupe-speed.cloud/assets/images/cloudy.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" style="font-family: 'Titillium Web', sans-serif;">
     
@@ -179,9 +180,14 @@ $currentPage = 'signatures';
                         </div>
                         <span class="sm:ml-4 text-sm text-gray-500">Aperçu de la signature</span>
                     </div>
-                    <button id="copyBtn" class="text-sm bg-speed-purple text-white px-4 py-2 rounded-lg hover:bg-speed-purple-dark transition w-full sm:w-auto">
-                        📋 Copier la signature
-                    </button>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button id="copyBtn" class="text-sm bg-speed-purple text-white px-4 py-2 rounded-lg hover:bg-speed-purple-dark transition flex-1 sm:flex-initial">
+                            📋 Copier
+                        </button>
+                        <button id="downloadPngBtn" class="text-sm bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition flex-1 sm:flex-initial">
+                            🖼️ PNG
+                        </button>
+                    </div>
                 </div>
                 <div id="preview" class="p-4 sm:p-6 bg-white min-h-[150px] overflow-x-auto">
                     <!-- Signature générée ici -->
@@ -193,10 +199,11 @@ $currentPage = 'signatures';
                 <h3 class="text-white font-semibold mb-2">💡 Comment utiliser</h3>
                 <ol class="text-gray-300 text-sm space-y-1 list-decimal list-inside">
                     <li>Vérifiez vos informations (prénom, nom, poste)</li>
-                    <li>Sélectionnez votre client email</li>
-                    <li>Cliquez sur "Copier" ou sélectionnez la signature (Ctrl+A dans l'aperçu)</li>
-                    <li>Collez dans les paramètres de signature de votre client email</li>
+                    <li>Sélectionnez votre format de signature</li>
+                    <li><strong>HTML</strong> : Cliquez "Copier" puis collez dans les paramètres de signature</li>
+                    <li><strong>Image</strong> : Cliquez "PNG" pour télécharger, puis insérez l'image dans Gmail</li>
                 </ol>
+                <p class="text-gray-400 text-xs mt-2">💡 Pour Gmail Web, l'export PNG est recommandé pour un meilleur rendu</p>
             </div>
         </div>
 
@@ -317,9 +324,60 @@ $currentPage = 'signatures';
                 selection.removeAllRanges();
                 
                 copyBtn.textContent = '✓ Copié !';
-                setTimeout(() => copyBtn.textContent = 'Copier', 2000);
+                setTimeout(() => copyBtn.textContent = '📋 Copier', 2000);
             } catch (e) {
                 console.error(e);
+            }
+        });
+        
+        // Download PNG button
+        const downloadPngBtn = document.getElementById('downloadPngBtn');
+        downloadPngBtn.addEventListener('click', async () => {
+            try {
+                downloadPngBtn.textContent = '⏳ Génération...';
+                downloadPngBtn.disabled = true;
+                
+                // Attendre que les images soient chargées
+                const images = preview.querySelectorAll('img');
+                await Promise.all(Array.from(images).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Continue même si une image échoue
+                    });
+                }));
+                
+                // Générer le canvas avec html2canvas
+                const canvas = await html2canvas(preview, {
+                    backgroundColor: '#ffffff',
+                    scale: 2, // Meilleure qualité
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+                
+                // Créer le lien de téléchargement
+                const link = document.createElement('a');
+                const style = document.querySelector('input[name="style"]:checked').value;
+                const name = currentTab === 'personal' 
+                    ? `${personalForm.firstname.value}_${personalForm.lastname.value}`.toLowerCase().replace(/\s+/g, '_')
+                    : serviceForm.service.value;
+                link.download = `signature_${name}_${style}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                downloadPngBtn.textContent = '✓ Téléchargé !';
+                setTimeout(() => {
+                    downloadPngBtn.textContent = '🖼️ PNG';
+                    downloadPngBtn.disabled = false;
+                }, 2000);
+            } catch (e) {
+                console.error('Erreur PNG:', e);
+                downloadPngBtn.textContent = '❌ Erreur';
+                setTimeout(() => {
+                    downloadPngBtn.textContent = '🖼️ PNG';
+                    downloadPngBtn.disabled = false;
+                }, 2000);
             }
         });
         
