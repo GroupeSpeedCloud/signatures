@@ -65,6 +65,9 @@ $jobs = $config['jobs'] ?? [];
                 <button id="tabService" class="px-6 py-3 rounded-t-lg sm:rounded-t-lg bg-white/5 text-gray-400 font-medium border-b-2 border-transparent hover:text-white transition">
                     🏢 Signature Service
                 </button>
+                <a href="/chibi.php" class="px-6 py-3 rounded-t-lg sm:rounded-t-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-gray-300 font-medium border-b-2 border-transparent hover:text-white hover:border-pink-400 transition flex items-center justify-center gap-2">
+                    ✨ Créer mon Chibi
+                </a>
             </div>
         </div>
 
