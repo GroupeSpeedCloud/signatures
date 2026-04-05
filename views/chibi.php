@@ -357,6 +357,26 @@ $currentPage = 'avatar';
             return colors[Math.abs(hash) % colors.length];
         }
         
+        // Lighten color by percentage
+        function lightenColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, (num >> 16) + amt);
+            const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+            const B = Math.min(255, (num & 0x0000FF) + amt);
+            return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+        }
+        
+        // Darken color by percentage
+        function darkenColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.max(0, (num >> 16) - amt);
+            const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
+            const B = Math.max(0, (num & 0x0000FF) - amt);
+            return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+        }
+        
         // Draw Badge
         function drawBadge() {
             const size = parseInt(sizeInput.value);
@@ -382,78 +402,159 @@ $currentPage = 'avatar';
             const primaryColor = stringToColor(name);
             const centerX = size / 2;
             const centerY = size / 2;
-            const radius = size * 0.38; // Légèrement plus petit pour laisser place à l'anneau
+            const radius = size * 0.36;
             
-            // Variables pour l'anneau (calculées ici pour être utilisées après)
-            const ringOuterRadius = size * 0.46;
-            const ringInnerRadius = size * 0.40;
-            const ringWidth = ringOuterRadius - ringInnerRadius;
+            // Configuration anneau premium
+            const ringWidth = size * 0.045;
+            const ringRadius = radius + ringWidth / 2 + size * 0.015;
             
-            // Dessiner l'anneau en premier (derrière le badge)
+            // ===== OMBRE GLOBALE DU BADGE =====
+            if (showCloudy) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(138, 77, 253, 0.4)';
+                ctx.shadowBlur = size * 0.06;
+                ctx.shadowOffsetY = size * 0.015;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, ringRadius + ringWidth / 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(138, 77, 253, 0.01)';
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            // ===== ANNEAU PREMIUM =====
             if (showCloudy && cloudyLogo.complete) {
                 ctx.save();
                 
-                // Anneau violet
+                // Dégradé pour l'anneau (effet métallique/premium)
+                const ringGradient = ctx.createLinearGradient(
+                    centerX - ringRadius, centerY - ringRadius,
+                    centerX + ringRadius, centerY + ringRadius
+                );
+                ringGradient.addColorStop(0, '#a855f7');    // Plus clair
+                ringGradient.addColorStop(0.3, '#8a4dfd');  // Couleur principale
+                ringGradient.addColorStop(0.5, '#7c3aed'); 
+                ringGradient.addColorStop(0.7, '#8a4dfd');
+                ringGradient.addColorStop(1, '#6d28d9');    // Plus foncé
+                
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, ringOuterRadius, 0, Math.PI * 2);
-                ctx.arc(centerX, centerY, ringInnerRadius, 0, Math.PI * 2, true);
-                ctx.fillStyle = '#8a4dfd';
+                ctx.arc(centerX, centerY, ringRadius + ringWidth / 2, 0, Math.PI * 2);
+                ctx.arc(centerX, centerY, ringRadius - ringWidth / 2, 0, Math.PI * 2, true);
+                ctx.fillStyle = ringGradient;
                 ctx.fill();
                 
-                // Effet de brillance sur l'anneau
-                const ringGradient = ctx.createLinearGradient(0, centerY - ringOuterRadius, 0, centerY + ringOuterRadius);
-                ringGradient.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
-                ringGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-                ringGradient.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
+                // Reflet de lumière sur l'anneau (effet 3D)
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, ringOuterRadius, 0, Math.PI * 2);
-                ctx.arc(centerX, centerY, ringInnerRadius, 0, Math.PI * 2, true);
-                ctx.fillStyle = ringGradient;
+                ctx.arc(centerX, centerY, ringRadius + ringWidth / 2 - 1, 0, Math.PI * 2);
+                ctx.arc(centerX, centerY, ringRadius - ringWidth / 2 + 1, 0, Math.PI * 2, true);
+                const highlightGradient = ctx.createLinearGradient(0, centerY - ringRadius, 0, centerY);
+                highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+                highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.1)');
+                highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = highlightGradient;
                 ctx.fill();
                 
                 ctx.restore();
             }
             
+            // ===== CERCLE PRINCIPAL PREMIUM =====
+            // Ombre douce du cercle
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = size * 0.03;
+            ctx.shadowOffsetY = size * 0.01;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.01)';
+            ctx.fill();
+            ctx.restore();
+            
             // Style-specific rendering
             if (badgeStyle === 'modern') {
-                // Clean circle
+                // Cercle avec dégradé subtil
+                const bgGradient = ctx.createRadialGradient(
+                    centerX - radius * 0.3, centerY - radius * 0.3, 0,
+                    centerX, centerY, radius * 1.2
+                );
+                bgGradient.addColorStop(0, lightenColor(primaryColor, 15));
+                bgGradient.addColorStop(0.7, primaryColor);
+                bgGradient.addColorStop(1, darkenColor(primaryColor, 15));
+                
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                ctx.fillStyle = primaryColor;
+                ctx.fillStyle = bgGradient;
                 ctx.fill();
                 
-                // Inner shadow
-                const gradient = ctx.createRadialGradient(centerX - radius*0.3, centerY - radius*0.3, 0, centerX, centerY, radius);
-                gradient.addColorStop(0, 'rgba(255,255,255,0.2)');
-                gradient.addColorStop(1, 'rgba(0,0,0,0.1)');
-                ctx.fillStyle = gradient;
+                // Reflet de lumière en haut
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                const highlight = ctx.createRadialGradient(
+                    centerX - radius * 0.25, centerY - radius * 0.35, 0,
+                    centerX, centerY, radius
+                );
+                highlight.addColorStop(0, 'rgba(255,255,255,0.35)');
+                highlight.addColorStop(0.4, 'rgba(255,255,255,0.1)');
+                highlight.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = highlight;
                 ctx.fill();
                 
             } else if (badgeStyle === 'gradient') {
-                // Gradient circle
-                const gradient = ctx.createLinearGradient(0, 0, size, size);
-                gradient.addColorStop(0, primaryColor);
-                gradient.addColorStop(1, '#8a4dfd');
+                // Dégradé diagonal premium
+                const gradient = ctx.createLinearGradient(
+                    centerX - radius, centerY - radius,
+                    centerX + radius, centerY + radius
+                );
+                gradient.addColorStop(0, lightenColor(primaryColor, 10));
+                gradient.addColorStop(0.5, '#8a4dfd');
+                gradient.addColorStop(1, '#6d28d9');
+                
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
                 ctx.fillStyle = gradient;
                 ctx.fill();
                 
+                // Reflet subtil
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                const highlight = ctx.createRadialGradient(
+                    centerX - radius * 0.3, centerY - radius * 0.3, 0,
+                    centerX, centerY, radius
+                );
+                highlight.addColorStop(0, 'rgba(255,255,255,0.25)');
+                highlight.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+                highlight.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = highlight;
+                ctx.fill();
+                
             } else if (badgeStyle === 'neon') {
-                // Neon glow effect
+                // Effet néon premium
+                ctx.save();
                 ctx.shadowColor = primaryColor;
-                ctx.shadowBlur = size * 0.08;
+                ctx.shadowBlur = size * 0.1;
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius * 0.95, 0, Math.PI * 2);
                 ctx.strokeStyle = primaryColor;
-                ctx.lineWidth = size * 0.03;
+                ctx.lineWidth = size * 0.025;
                 ctx.stroke();
-                ctx.shadowBlur = 0;
+                ctx.restore();
                 
-                // Inner fill
+                // Second glow
+                ctx.save();
+                ctx.shadowColor = '#8a4dfd';
+                ctx.shadowBlur = size * 0.05;
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, radius * 0.9, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(138, 77, 253, 0.2)';
+                ctx.arc(centerX, centerY, radius * 0.88, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(138, 77, 253, 0.5)';
+                ctx.lineWidth = size * 0.01;
+                ctx.stroke();
+                ctx.restore();
+                
+                // Inner fill avec dégradé
+                const innerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius * 0.85);
+                innerGradient.addColorStop(0, 'rgba(138, 77, 253, 0.15)');
+                innerGradient.addColorStop(1, 'rgba(138, 77, 253, 0.05)');
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius * 0.85, 0, Math.PI * 2);
+                ctx.fillStyle = innerGradient;
                 ctx.fill();
             }
             
@@ -478,39 +579,58 @@ $currentPage = 'avatar';
                 ctx.fillText(job, centerX, centerY + size * 0.14);
             }
             
-            // Logo Cloudy sur l'anneau (dessiné en dernier, au-dessus de tout)
+            // ===== LOGO CLOUDY PREMIUM =====
             if (showCloudy && cloudyLogo.complete) {
                 ctx.save();
                 
-                // Logo positionné sur l'anneau (en bas)
-                const logoSize = ringWidth * 2.5;
-                const logoAngle = Math.PI / 2; // Position en bas (90°)
-                const logoDistance = (ringOuterRadius + ringInnerRadius) / 2;
-                const logoCenterX = centerX + Math.cos(logoAngle) * logoDistance;
-                const logoCenterY = centerY + Math.sin(logoAngle) * logoDistance;
+                // Position : bas-droite, sur l'anneau
+                const logoSize = size * 0.16;
+                const logoAngle = Math.PI / 4 + Math.PI / 2; // 135° (bas-droite)
+                const logoCenterX = centerX + Math.cos(logoAngle) * ringRadius;
+                const logoCenterY = centerY + Math.sin(logoAngle) * ringRadius;
+                const logoBgRadius = logoSize / 2 + size * 0.018;
                 
-                // Cercle blanc pour le logo
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-                ctx.shadowBlur = size * 0.015;
-                ctx.shadowOffsetY = size * 0.005;
+                // Ombre du logo
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+                ctx.shadowBlur = size * 0.025;
+                ctx.shadowOffsetX = size * 0.005;
+                ctx.shadowOffsetY = size * 0.008;
+                
+                // Fond blanc du logo
                 ctx.beginPath();
-                ctx.arc(logoCenterX, logoCenterY, logoSize / 2 + size * 0.012, 0, Math.PI * 2);
+                ctx.arc(logoCenterX, logoCenterY, logoBgRadius, 0, Math.PI * 2);
                 ctx.fillStyle = '#ffffff';
                 ctx.fill();
                 
-                // Reset shadow et bordure violette
+                // Reset shadow
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
-                ctx.strokeStyle = '#8a4dfd';
-                ctx.lineWidth = size * 0.008;
+                
+                // Bordure dégradée premium
+                const borderGradient = ctx.createLinearGradient(
+                    logoCenterX - logoBgRadius, logoCenterY - logoBgRadius,
+                    logoCenterX + logoBgRadius, logoCenterY + logoBgRadius
+                );
+                borderGradient.addColorStop(0, '#a855f7');
+                borderGradient.addColorStop(0.5, '#8a4dfd');
+                borderGradient.addColorStop(1, '#7c3aed');
+                ctx.strokeStyle = borderGradient;
+                ctx.lineWidth = size * 0.012;
                 ctx.stroke();
                 
-                // Dessiner le logo
+                // Dessiner le logo Cloudy
                 ctx.beginPath();
                 ctx.arc(logoCenterX, logoCenterY, logoSize / 2, 0, Math.PI * 2);
                 ctx.clip();
-                ctx.drawImage(cloudyLogo, logoCenterX - logoSize / 2, logoCenterY - logoSize / 2, logoSize, logoSize);
+                ctx.drawImage(
+                    cloudyLogo, 
+                    logoCenterX - logoSize / 2, 
+                    logoCenterY - logoSize / 2, 
+                    logoSize, 
+                    logoSize
+                );
                 
                 ctx.restore();
             }
