@@ -2,6 +2,7 @@
 $user = $_SESSION['user'];
 $config = require __DIR__ . '/../config.php';
 $services = $config['services'] ?? [];
+$jobs = $config['jobs'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -44,9 +45,6 @@ $services = $config['services'] ?? [];
                     <div class="text-right">
                         <p class="text-white text-sm font-medium"><?= htmlspecialchars($user['name']) ?></p>
                         <p class="text-gray-400 text-xs"><?= htmlspecialchars($user['email']) ?></p>
-                        <?php if (!empty($user['jobTitle'])): ?>
-                        <p class="text-purple-400 text-xs"><?= htmlspecialchars($user['jobTitle']) ?></p>
-                        <?php endif; ?>
                     </div>
                 </div>
                 <a href="/logout.php" class="text-gray-400 hover:text-white transition" title="Déconnexion">
@@ -85,14 +83,12 @@ $services = $config['services'] ?? [];
                         class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-speed-purple transition">
                 </div>
                 <div>
-                    <label for="job" class="block text-sm font-semibold text-gray-200 mb-2">
-                        Poste
-                        <?php if (!empty($user['jobTitle'])): ?>
-                        <span class="text-green-400 text-xs ml-2">✓ Récupéré depuis Google</span>
-                        <?php endif; ?>
-                    </label>
-                    <input type="text" id="job" value="<?= htmlspecialchars($user['jobTitle'] ?? '') ?>" placeholder="Votre fonction" 
-                        class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-speed-purple transition">
+                    <label for="job" class="block text-sm font-semibold text-gray-200 mb-2">Poste</label>
+                    <select id="job" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-speed-purple transition cursor-pointer">
+                        <?php foreach ($jobs as $value => $label): ?>
+                        <option value="<?= htmlspecialchars($value) ?>" class="bg-gray-800"><?= htmlspecialchars($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div>
                     <label for="email" class="block text-sm font-semibold text-gray-200 mb-2">E-mail</label>
@@ -255,6 +251,7 @@ $services = $config['services'] ?? [];
         personalForm.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', updatePreview);
         });
+        personalForm.job.addEventListener('change', updatePreview);
         
         // Events for service form
         serviceForm.service.addEventListener('change', updatePreview);
