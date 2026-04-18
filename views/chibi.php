@@ -2,196 +2,572 @@
 $user = $_SESSION['user'];
 $config = require __DIR__ . '/../config.php';
 $currentPage = 'avatar';
+$jobs = $config['jobs'] ?? [];
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#141218">
     <title>Badge Professionnel - Groupe Speed Cloud</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'speed-purple': '#8a4dfd',
-                        'speed-purple-dark': '#7040d9',
-                    }
-                }
+    
+    <!-- Material Design 3 -->
+    <link rel="stylesheet" href="/assets/css/material-design.css">
+    <link rel="icon" type="image/png" href="https://sign.groupe-speed.cloud/assets/images/cloudy.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+    
+    <style>
+        .material-symbols-rounded {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Navigation Rail Logo */
+        .nav-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-sys-shape-corner-large);
+            margin-bottom: var(--md-sys-spacing-4);
+        }
+        
+        /* Main content area */
+        .main-content {
+            padding: var(--md-sys-spacing-4);
+            padding-bottom: 96px;
+        }
+        
+        @media (min-width: 640px) {
+            .main-content {
+                margin-left: 80px;
+                padding: var(--md-sys-spacing-6);
+                padding-bottom: var(--md-sys-spacing-6);
             }
         }
-    </script>
-    <link rel="icon" type="image/png" href="https://sign.groupe-speed.cloud/assets/images/cloudy.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+        
+        /* Page header */
+        .page-header {
+            margin-bottom: var(--md-sys-spacing-6);
+        }
+        
+        /* Two column layout */
+        .badge-layout {
+            display: grid;
+            gap: var(--md-sys-spacing-6);
+        }
+        
+        @media (min-width: 1024px) {
+            .badge-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Options card */
+        .options-card {
+            padding: var(--md-sys-spacing-6);
+            animation: slideUp 0.4s var(--md-sys-motion-easing-emphasized-decelerate);
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .options-title {
+            display: flex;
+            align-items: center;
+            gap: var(--md-sys-spacing-2);
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: var(--md-sys-spacing-6);
+        }
+        
+        /* Form fields */
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: var(--md-sys-spacing-5);
+        }
+        
+        .field-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--md-sys-spacing-2);
+        }
+        
+        .field-label {
+            font: var(--md-sys-typescale-label-large);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        
+        /* Style selection */
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--md-sys-spacing-2);
+        }
+        
+        .style-option {
+            cursor: pointer;
+        }
+        
+        .style-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .style-option-content {
+            padding: var(--md-sys-spacing-3);
+            background-color: var(--md-sys-color-surface-container);
+            border: 2px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-medium);
+            text-align: center;
+            transition: all var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+        }
+        
+        .style-option input:checked + .style-option-content {
+            border-color: var(--md-sys-color-primary);
+            background-color: var(--md-sys-color-primary-container);
+        }
+        
+        .style-option:hover .style-option-content {
+            background-color: var(--md-sys-color-surface-container-high);
+        }
+        
+        .style-option input:checked + .style-option-content:hover {
+            background-color: var(--md-sys-color-primary-container);
+        }
+        
+        .style-option-text {
+            font: var(--md-sys-typescale-label-medium);
+            color: var(--md-sys-color-on-surface);
+        }
+        
+        /* Color selection */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: var(--md-sys-spacing-2);
+        }
+        
+        .color-option {
+            cursor: pointer;
+        }
+        
+        .color-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: var(--md-sys-shape-corner-medium);
+            border: 2px solid var(--md-sys-color-outline-variant);
+            transition: all var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+        }
+        
+        .color-option input:checked + .color-swatch {
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-surface), 0 0 0 4px var(--md-sys-color-primary);
+        }
+        
+        .color-swatch--transparent {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='4' height='4' fill='%23ccc'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23ccc'/%3E%3C/svg%3E");
+        }
+        
+        /* Slider field */
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--md-sys-spacing-2);
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .slider-value {
+            font: var(--md-sys-typescale-label-medium);
+            color: var(--md-sys-color-primary);
+            background-color: var(--md-sys-color-primary-container);
+            padding: var(--md-sys-spacing-1) var(--md-sys-spacing-2);
+            border-radius: var(--md-sys-shape-corner-small);
+        }
+        
+        /* Switch field */
+        .switch-field {
+            display: flex;
+            align-items: center;
+            gap: var(--md-sys-spacing-3);
+        }
+        
+        /* Preview card */
+        .preview-card {
+            padding: var(--md-sys-spacing-6);
+            animation: slideUp 0.5s var(--md-sys-motion-easing-emphasized-decelerate);
+            animation-delay: 0.1s;
+            animation-fill-mode: backwards;
+        }
+        
+        .preview-title {
+            display: flex;
+            align-items: center;
+            gap: var(--md-sys-spacing-2);
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: var(--md-sys-spacing-6);
+        }
+        
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: var(--md-sys-spacing-6);
+        }
+        
+        .canvas-wrapper {
+            background-color: var(--md-sys-color-surface-container);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            padding: var(--md-sys-spacing-4);
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+        
+        #badgeCanvas {
+            border-radius: var(--md-sys-shape-corner-large);
+            display: block;
+        }
+        
+        /* Info card */
+        .info-card {
+            background-color: var(--md-sys-color-primary-container);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: var(--md-sys-spacing-4);
+            margin-top: var(--md-sys-spacing-6);
+        }
+        
+        .info-card-title {
+            display: flex;
+            align-items: center;
+            gap: var(--md-sys-spacing-2);
+            color: var(--md-sys-color-on-primary-container);
+            margin-bottom: var(--md-sys-spacing-2);
+        }
+        
+        .info-list {
+            color: var(--md-sys-color-on-primary-container);
+            padding-left: var(--md-sys-spacing-5);
+        }
+        
+        .info-list li {
+            margin-bottom: var(--md-sys-spacing-1);
+        }
+        
+        /* Custom input for dark theme */
+        .md-input-dark {
+            width: 100%;
+            height: 56px;
+            padding: var(--md-sys-spacing-4);
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-small);
+            background-color: var(--md-sys-color-surface-container);
+            color: var(--md-sys-color-on-surface);
+            font: var(--md-sys-typescale-body-large);
+            transition: border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+                        background-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+        }
+        
+        .md-input-dark:hover {
+            border-color: var(--md-sys-color-on-surface);
+        }
+        
+        .md-input-dark:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            border-width: 2px;
+        }
+        
+        .md-input-dark::placeholder {
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        
+        /* User section */
+        .user-section {
+            margin-top: auto;
+            padding: var(--md-sys-spacing-3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--md-sys-spacing-2);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--md-sys-shape-corner-full);
+            border: 2px solid var(--md-sys-color-outline-variant);
+        }
+        
+        /* Mobile top bar */
+        .mobile-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
+            background-color: var(--md-sys-color-surface);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        @media (min-width: 640px) {
+            .mobile-top-bar {
+                display: none;
+            }
+        }
+        
+        .mobile-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--md-sys-spacing-3);
+            text-decoration: none;
+            color: var(--md-sys-color-on-surface);
+        }
+        
+        .mobile-logo img {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--md-sys-shape-corner-medium);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: var(--md-sys-spacing-6);
+            color: var(--md-sys-color-outline);
+        }
+        
+        /* Snackbar */
+        @media (max-width: 639px) {
+            .md-snackbar {
+                bottom: 96px;
+            }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" style="font-family: 'Titillium Web', sans-serif;">
-    
-    <!-- Navigation Bar -->
-    <nav class="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a href="/" class="flex items-center gap-3 hover:opacity-80 transition">
-                    <img src="/assets/images/cloudy.png" alt="" class="w-10 h-10 rounded-lg">
-                    <span class="text-white font-bold text-lg hidden sm:block">Groupe Speed Cloud</span>
-                </a>
-                
-                <div class="flex items-center gap-1 sm:gap-2">
-                    <a href="/" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition <?= $currentPage === 'signatures' ? 'bg-speed-purple text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white' ?>">
-                        <span class="hidden sm:inline">✍️ Signatures</span>
-                        <span class="sm:hidden">✍️</span>
-                    </a>
-                    <a href="/chibi.php" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition <?= $currentPage === 'avatar' ? 'bg-speed-purple text-white' : 'text-gray-300 hover:bg-white/10 hover:text-white' ?>">
-                        <span class="hidden sm:inline">🏷️ Badge</span>
-                        <span class="sm:hidden">🏷️</span>
-                    </a>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                    <?php if (!empty($user['picture'])): ?>
-                    <img src="<?= htmlspecialchars($user['picture']) ?>" alt="" class="w-8 h-8 rounded-full border-2 border-white/20">
-                    <?php endif; ?>
-                    <div class="hidden md:block text-right">
-                        <p class="text-white text-sm font-medium leading-tight"><?= htmlspecialchars($user['name']) ?></p>
-                        <p class="text-gray-400 text-xs"><?= htmlspecialchars($user['email']) ?></p>
-                    </div>
-                    <a href="/logout.php" class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition" title="Déconnexion">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
+<body>
+    <!-- Navigation Rail (Desktop) -->
+    <nav class="md-navigation-rail" aria-label="Navigation principale">
+        <a href="/" aria-label="Accueil">
+            <img src="/assets/images/cloudy.png" alt="" class="nav-logo">
+        </a>
+        
+        <a href="/" class="md-navigation-rail__item <?= $currentPage === 'signatures' ? 'active' : '' ?>">
+            <span class="md-navigation-rail__icon">
+                <span class="material-symbols-rounded">edit_note</span>
+            </span>
+            <span class="md-navigation-rail__label">Signature</span>
+        </a>
+        
+        <a href="/chibi.php" class="md-navigation-rail__item <?= $currentPage === 'avatar' ? 'active' : '' ?>" aria-current="<?= $currentPage === 'avatar' ? 'page' : 'false' ?>">
+            <span class="md-navigation-rail__icon">
+                <span class="material-symbols-rounded">badge</span>
+            </span>
+            <span class="md-navigation-rail__label">Badge</span>
+        </a>
+        
+        <div class="user-section">
+            <?php if (!empty($user['picture'])): ?>
+            <img src="<?= htmlspecialchars($user['picture']) ?>" alt="" class="user-avatar">
+            <?php endif; ?>
+            <a href="/logout.php" class="md-icon-button" title="Déconnexion" aria-label="Déconnexion">
+                <span class="material-symbols-rounded">logout</span>
+            </a>
         </div>
     </nav>
-
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto mb-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">🏷️ Badge Professionnel</h1>
-            <p class="text-gray-400">Créez votre badge professionnel pour l'association</p>
+    
+    <!-- Navigation Bar (Mobile) -->
+    <nav class="md-navigation-bar" aria-label="Navigation principale">
+        <a href="/" class="md-navigation-bar__item <?= $currentPage === 'signatures' ? 'active' : '' ?>">
+            <span class="md-navigation-bar__icon">
+                <span class="material-symbols-rounded">edit_note</span>
+            </span>
+            <span class="md-navigation-bar__label">Signature</span>
+        </a>
+        
+        <a href="/chibi.php" class="md-navigation-bar__item <?= $currentPage === 'avatar' ? 'active' : '' ?>" aria-current="<?= $currentPage === 'avatar' ? 'page' : 'false' ?>">
+            <span class="md-navigation-bar__icon">
+                <span class="material-symbols-rounded">badge</span>
+            </span>
+            <span class="md-navigation-bar__label">Badge</span>
+        </a>
+    </nav>
+    
+    <!-- Mobile Top Bar -->
+    <header class="mobile-top-bar">
+        <a href="/" class="mobile-logo">
+            <img src="/assets/images/cloudy.png" alt="">
+            <span class="title-medium">Speed Cloud</span>
+        </a>
+        <div class="flex items-center gap-2">
+            <?php if (!empty($user['picture'])): ?>
+            <img src="<?= htmlspecialchars($user['picture']) ?>" alt="" class="user-avatar" style="width: 32px; height: 32px;">
+            <?php endif; ?>
+            <a href="/logout.php" class="md-icon-button" title="Déconnexion" aria-label="Déconnexion">
+                <span class="material-symbols-rounded">logout</span>
+            </a>
         </div>
-
-        <div class="max-w-4xl mx-auto">
-            <div class="grid lg:grid-cols-2 gap-8">
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="md-container max-w-4xl">
+            <!-- Page Header -->
+            <header class="page-header">
+                <h1 class="headline-large" style="color: var(--md-sys-color-on-surface);">Badge Professionnel</h1>
+                <p class="body-medium" style="color: var(--md-sys-color-on-surface-variant); margin-top: var(--md-sys-spacing-1);">
+                    Créez votre badge d'identification pour l'association
+                </p>
+            </header>
+            
+            <!-- Two Column Layout -->
+            <div class="badge-layout">
                 
-                <!-- Options -->
-                <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                    <h2 class="text-xl font-bold text-white mb-6">⚙️ Personnalisation</h2>
+                <!-- Options Card -->
+                <div class="options-card md-card--elevated md-surface-container-low">
+                    <h2 class="options-title title-large">
+                        <span class="material-symbols-rounded">tune</span>
+                        Personnalisation
+                    </h2>
                     
-                    <form id="badgeForm" class="space-y-5">
+                    <form id="badgeForm" class="form-fields">
                         <!-- Name -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-200 mb-2">Nom complet</label>
+                        <div class="field-container">
+                            <label for="name" class="field-label">Nom complet</label>
                             <input type="text" id="name" value="<?= htmlspecialchars($user['name']) ?>" 
-                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-speed-purple transition">
+                                class="md-input-dark" autocomplete="name">
                         </div>
                         
-                        <!-- Job Title -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-200 mb-2">Poste</label>
-                            <select id="badgeJob" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-speed-purple transition cursor-pointer">
-                                <option value="" class="bg-gray-800">Sans poste</option>
-                                <?php 
-                                $jobs = $config['jobs'] ?? [];
-                                foreach ($jobs as $key => $label): 
+                        <!-- Job -->
+                        <div class="field-container">
+                            <label for="badgeJob" class="field-label">Poste</label>
+                            <select id="badgeJob" class="md-input-dark" style="cursor: pointer;">
+                                <option value="">Sans poste</option>
+                                <?php foreach ($jobs as $key => $label): 
                                     if ($key && $key !== '__autre__'):
                                 ?>
-                                <option value="<?= htmlspecialchars($label) ?>" class="bg-gray-800"><?= htmlspecialchars($label) ?></option>
+                                <option value="<?= htmlspecialchars($label) ?>"><?= htmlspecialchars($label) ?></option>
                                 <?php endif; endforeach; ?>
                             </select>
                         </div>
-
-                        <!-- Badge Style -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-200 mb-2">Style</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="badgeStyle" value="modern" class="peer hidden" checked>
-                                    <div class="p-3 bg-white/5 border-2 border-white/10 rounded-lg text-center peer-checked:border-speed-purple peer-checked:bg-speed-purple/20 transition">
-                                        <span class="text-white text-sm">Moderne</span>
+                        
+                        <!-- Style -->
+                        <div class="field-container">
+                            <span class="field-label">Style</span>
+                            <div class="style-grid">
+                                <label class="style-option">
+                                    <input type="radio" name="badgeStyle" value="modern" checked>
+                                    <div class="style-option-content">
+                                        <span class="style-option-text">Moderne</span>
                                     </div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="badgeStyle" value="gradient" class="peer hidden">
-                                    <div class="p-3 bg-white/5 border-2 border-white/10 rounded-lg text-center peer-checked:border-speed-purple peer-checked:bg-speed-purple/20 transition">
-                                        <span class="text-white text-sm">Dégradé</span>
+                                <label class="style-option">
+                                    <input type="radio" name="badgeStyle" value="gradient">
+                                    <div class="style-option-content">
+                                        <span class="style-option-text">Dégradé</span>
                                     </div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="badgeStyle" value="neon" class="peer hidden">
-                                    <div class="p-3 bg-white/5 border-2 border-white/10 rounded-lg text-center peer-checked:border-speed-purple peer-checked:bg-speed-purple/20 transition">
-                                        <span class="text-white text-sm">Néon</span>
+                                <label class="style-option">
+                                    <input type="radio" name="badgeStyle" value="neon">
+                                    <div class="style-option-content">
+                                        <span class="style-option-text">Néon</span>
                                     </div>
                                 </label>
                             </div>
                         </div>
-
+                        
                         <!-- Background Color -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-200 mb-2">Fond</label>
-                            <div class="grid grid-cols-6 gap-2">
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="bgColor" value="transparent" class="peer hidden" checked>
-                                    <div class="w-full aspect-square rounded-lg border-2 border-white/20 peer-checked:border-speed-purple transition bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%228%22%20height%3D%228%22%3E%3Crect%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23ccc%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23ccc%22%2F%3E%3C%2Fsvg%3E')]"></div>
+                        <div class="field-container">
+                            <span class="field-label">Fond</span>
+                            <div class="color-grid">
+                                <label class="color-option">
+                                    <input type="radio" name="bgColor" value="transparent" checked>
+                                    <div class="color-swatch color-swatch--transparent"></div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="bgColor" value="ffffff" class="peer hidden">
-                                    <div class="w-full aspect-square rounded-lg border-2 border-white/20 peer-checked:border-speed-purple transition" style="background: #ffffff;"></div>
+                                <label class="color-option">
+                                    <input type="radio" name="bgColor" value="ffffff">
+                                    <div class="color-swatch" style="background: #ffffff;"></div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="bgColor" value="8a4dfd" class="peer hidden">
-                                    <div class="w-full aspect-square rounded-lg border-2 border-white/20 peer-checked:border-white transition" style="background: #8a4dfd;"></div>
+                                <label class="color-option">
+                                    <input type="radio" name="bgColor" value="8a4dfd">
+                                    <div class="color-swatch" style="background: #8a4dfd;"></div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="bgColor" value="1a1a2e" class="peer hidden">
-                                    <div class="w-full aspect-square rounded-lg border-2 border-white/20 peer-checked:border-white transition" style="background: #1a1a2e;"></div>
+                                <label class="color-option">
+                                    <input type="radio" name="bgColor" value="1a1a2e">
+                                    <div class="color-swatch" style="background: #1a1a2e;"></div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="bgColor" value="0f172a" class="peer hidden">
-                                    <div class="w-full aspect-square rounded-lg border-2 border-white/20 peer-checked:border-white transition" style="background: #0f172a;"></div>
+                                <label class="color-option">
+                                    <input type="radio" name="bgColor" value="0f172a">
+                                    <div class="color-swatch" style="background: #0f172a;"></div>
                                 </label>
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="bgColor" value="f8fafc" class="peer hidden">
-                                    <div class="w-full aspect-square rounded-lg border-2 border-white/20 peer-checked:border-speed-purple transition" style="background: #f8fafc;"></div>
+                                <label class="color-option">
+                                    <input type="radio" name="bgColor" value="f8fafc">
+                                    <div class="color-swatch" style="background: #f8fafc;"></div>
                                 </label>
                             </div>
                         </div>
-
-                        <!-- Size -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-200 mb-2">Taille : <span id="sizeValue">256</span>px</label>
-                            <input type="range" id="size" min="128" max="512" value="256" 
-                                class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-speed-purple">
+                        
+                        <!-- Size Slider -->
+                        <div class="field-container">
+                            <div class="slider-header">
+                                <span class="field-label">Taille</span>
+                                <span id="sizeValue" class="slider-value">256px</span>
+                            </div>
+                            <input type="range" id="size" min="128" max="512" value="256" class="md-slider">
                         </div>
-
-                        <!-- Show Cloudy -->
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="showCloudy" checked class="w-5 h-5 rounded border-white/20 bg-white/10 text-speed-purple focus:ring-speed-purple cursor-pointer">
-                            <label for="showCloudy" class="text-sm text-gray-200 cursor-pointer">Afficher l'anneau Groupe Speed</label>
+                        
+                        <!-- Show Cloudy Switch -->
+                        <div class="switch-field">
+                            <label class="md-switch">
+                                <input type="checkbox" id="showCloudy" class="md-switch__input" checked>
+                                <span class="md-switch__track"></span>
+                                <span class="md-switch__thumb"></span>
+                            </label>
+                            <label for="showCloudy" class="field-label" style="cursor: pointer;">Afficher l'anneau Speed Cloud</label>
                         </div>
                     </form>
                 </div>
-
-                <!-- Preview -->
-                <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                    <h2 class="text-xl font-bold text-white mb-6">👀 Aperçu</h2>
+                
+                <!-- Preview Card -->
+                <div class="preview-card md-card--elevated md-surface-container-low">
+                    <h2 class="preview-title title-large">
+                        <span class="material-symbols-rounded">visibility</span>
+                        Aperçu
+                    </h2>
                     
-                    <div class="flex justify-center mb-6">
-                        <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
-                            <canvas id="badgeCanvas" class="mx-auto rounded-xl"></canvas>
+                    <div class="canvas-container">
+                        <div class="canvas-wrapper">
+                            <canvas id="badgeCanvas"></canvas>
                         </div>
                     </div>
-
-                    <div class="space-y-3">
-                        <button id="downloadPng" class="w-full py-3 bg-speed-purple text-white rounded-lg font-semibold hover:bg-speed-purple-dark transition flex items-center justify-center gap-2">
-                            📥 Télécharger PNG
-                        </button>
-                    </div>
-
-                    <div class="mt-6 p-4 bg-speed-purple/20 rounded-lg border border-speed-purple/30">
-                        <h3 class="text-white font-semibold mb-2">💡 Utilisation</h3>
-                        <ul class="text-gray-300 text-sm space-y-1 list-disc list-inside">
+                    
+                    <button id="downloadPng" class="md-button--filled md-button w-full" style="min-height: 48px;">
+                        <span class="material-symbols-rounded">download</span>
+                        Télécharger PNG
+                    </button>
+                    
+                    <!-- Info Card -->
+                    <div class="info-card">
+                        <h3 class="info-card-title title-small">
+                            <span class="material-symbols-rounded">lightbulb</span>
+                            Utilisation
+                        </h3>
+                        <ul class="info-list body-small">
                             <li>Photo de profil Gmail / Slack</li>
                             <li>Avatar pour les outils internes</li>
                             <li>Badge d'identification</li>
@@ -199,11 +575,17 @@ $currentPage = 'avatar';
                     </div>
                 </div>
             </div>
+            
+            <!-- Footer -->
+            <footer class="footer">
+                <p class="body-small">© <?= date('Y') ?> Association Groupe Speed Cloud — Tous droits réservés</p>
+            </footer>
         </div>
-
-        <div class="text-center mt-8 text-gray-400 text-sm">
-            © <?= date('Y') ?> Association Groupe Speed Cloud - Tous droits réservés
-        </div>
+    </main>
+    
+    <!-- Snackbar -->
+    <div id="snackbar" class="md-snackbar hidden" role="alert" aria-live="polite">
+        <span class="md-snackbar__text" id="snackbarText"></span>
     </div>
 
     <script>
@@ -211,11 +593,22 @@ $currentPage = 'avatar';
         const nameInput = document.getElementById('name');
         const sizeInput = document.getElementById('size');
         const sizeValue = document.getElementById('sizeValue');
+        const snackbar = document.getElementById('snackbar');
+        const snackbarText = document.getElementById('snackbarText');
         
         const cloudyLogo = new Image();
         cloudyLogo.crossOrigin = 'anonymous';
         cloudyLogo.src = 'https://sign.groupe-speed.cloud/assets/images/cloudy.png';
         cloudyLogo.onload = () => drawBadge();
+        
+        // Snackbar utility
+        function showSnackbar(message, duration = 3000) {
+            snackbarText.textContent = message;
+            snackbar.classList.remove('hidden');
+            setTimeout(() => {
+                snackbar.classList.add('hidden');
+            }, duration);
+        }
         
         function getInitials(name) {
             return name.split(' ').map(word => word[0]).join('').toUpperCase().substring(0, 2);
@@ -421,7 +814,7 @@ $currentPage = 'avatar';
             
             // Initials
             ctx.fillStyle = badgeStyle === 'neon' ? primaryColor : '#ffffff';
-            ctx.font = `bold ${size * 0.28}px 'Titillium Web', Arial, sans-serif`;
+            ctx.font = `bold ${size * 0.28}px 'Roboto', Arial, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(initials, centerX, job ? centerY - size * 0.06 : centerY);
@@ -429,13 +822,13 @@ $currentPage = 'avatar';
             // Job title
             if (job) {
                 ctx.fillStyle = badgeStyle === 'neon' ? '#ffffff' : 'rgba(255,255,255,0.9)';
-                ctx.font = `600 ${size * 0.08}px 'Titillium Web', Arial, sans-serif`;
+                ctx.font = `500 ${size * 0.08}px 'Roboto', Arial, sans-serif`;
                 const maxWidth = radius * 1.6;
                 let fontSize = size * 0.08;
-                ctx.font = `600 ${fontSize}px 'Titillium Web', Arial, sans-serif`;
+                ctx.font = `500 ${fontSize}px 'Roboto', Arial, sans-serif`;
                 while (ctx.measureText(job).width > maxWidth && fontSize > size * 0.04) {
                     fontSize -= 1;
-                    ctx.font = `600 ${fontSize}px 'Titillium Web', Arial, sans-serif`;
+                    ctx.font = `500 ${fontSize}px 'Roboto', Arial, sans-serif`;
                 }
                 ctx.fillText(job, centerX, centerY + size * 0.14);
             }
@@ -494,7 +887,7 @@ $currentPage = 'avatar';
         // Event listeners
         nameInput.addEventListener('input', drawBadge);
         sizeInput.addEventListener('input', () => {
-            sizeValue.textContent = sizeInput.value;
+            sizeValue.textContent = sizeInput.value + 'px';
             drawBadge();
         });
         document.querySelectorAll('input[name="bgColor"]').forEach(input => {
@@ -513,9 +906,11 @@ $currentPage = 'avatar';
             link.download = `badge_${name}.png`;
             link.href = badgeCanvas.toDataURL('image/png');
             link.click();
+            
+            showSnackbar('Téléchargement du badge en cours...');
         });
         
-        // Init
+        // Initialize
         drawBadge();
     </script>
 </body>
