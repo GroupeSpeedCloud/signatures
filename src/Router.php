@@ -53,7 +53,7 @@ class Router
     /**
      * Dispatch la requête vers le bon contrôleur
      */
-    public function dispatch(string $routeKey = null): void
+    public function dispatch(?string $routeKey = null): void
     {
         if ($routeKey === null) {
             $method = $_SERVER['REQUEST_METHOD'];
