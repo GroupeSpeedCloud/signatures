@@ -1,37 +1,135 @@
-# Enable rewrite engine
-RewriteEngine On
+# ===========================================
+# .htaccess RACINE - Configuration cPanel
+# ===========================================
+# IMPORTANT: À placer dans le dossier principal (public_html ou signatures)
+# L'application doit être dans un sous-dossier ou utiliser un sous-domaine
 
-# Redirect to HTTPS
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Activer le moteur de réécriture
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # ===========================================
+    # OPTION 1: Application dans un sous-dossier
+    # ===========================================
+    # Si l'application est dans public_html/signatures/
+    # Rediriger tout vers le dossier public/
+    
+    # Ne pas traiter les dossiers déjà dans public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_URI} !^/assets/
+    RewriteCond %{REQUEST_URI} !^/uploads/
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteCond %{REQUEST_URI} !^/cpanel/
+    RewriteCond %{REQUEST_URI} !^/webmail/
+    
+    # Rediriger vers public/
+    RewriteRule ^(.*)$ public/$1 [L]
+    
+    # ===========================================
+    # OPTION 2: Application à la racine (sous-domaine)
+    # ===========================================
+    # Si vous utilisez un sous-domaine (signatures.domaine.com)
+    # Décommentez cette section et commentez l'option 1
+    
+    # RewriteCond %{REQUEST_URI} !^/public/
+    # RewriteCond %{REQUEST_URI} !^/assets/
+    # RewriteCond %{REQUEST_URI} !^/uploads/
+    # RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
 
-# Redirect to index.php if no file specified
-DirectoryIndex index.php
+# ===========================================
+# PROTECTION DES FICHIERS SENSIBLES
+# ===========================================
 
-# Block access to sensitive files
-<FilesMatch "^(config\.php|composer\.(json|lock))$">
-    Order allow,deny
-    Deny from all
+# Bloquer config.php
+<Files "config.php">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</Files>
+
+# Bloquer composer.json et composer.lock
+<FilesMatch "^composer\.(json|lock)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
-# Block access to vendor directory
+# Bloquer .git
+<IfModule mod_rewrite.c>
+    RewriteRule ^\.git - [F,L]
+</IfModule>
+RedirectMatch 404 /\.git
+
+# Bloquer vendor/
 <IfModule mod_rewrite.c>
     RewriteRule ^vendor/ - [F,L]
 </IfModule>
 
-# Block access to .git
-RedirectMatch 404 /\.git
+# Bloquer src/
+<IfModule mod_rewrite.c>
+    RewriteRule ^src/ - [F,L]
+</IfModule>
 
-# Security headers
+# Bloquer les fichiers cachés (sauf .well-known)
+<IfModule mod_rewrite.c>
+    RewriteRule ^\.(?!well-known) - [F,L]
+</IfModule>
+
+# ===========================================
+# EN-TÊTES DE SÉCURITÉ
+# ===========================================
 <IfModule mod_headers.c>
+    # Protection XSS
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Content Security Policy
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://html2canvas.hertzen.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://accounts.google.com;"
+    
+    # Protection clickjacking
+    Header always set X-Frame-Options "DENY"
 </IfModule>
 
-# PHP settings
+# ===========================================
+# CONFIGURATION PHP
+# ===========================================
 <IfModule mod_php.c>
+    # Sécurité des sessions
     php_value session.cookie_httponly 1
     php_value session.cookie_secure 1
     php_value session.use_strict_mode 1
+    php_value session.use_only_cookies 1
+    
+    # Limites d'upload
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    
+    # Désactiver l'affichage des erreurs en production
+    php_flag display_errors Off
+    php_flag log_errors On
 </IfModule>
+
+# ===========================================
+# DÉSACTIVER LISTAGE DES RÉPERTOIRES
+# ===========================================
+Options -Indexes
+
+# ===========================================
+# REDIRECTION HTTPS (optionnel - à activer si SSL)
+# ===========================================
+# <IfModule mod_ssl.c>
+#     RewriteCond %{HTTPS} off
+#     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>

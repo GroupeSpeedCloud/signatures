@@ -1,40 +1,153 @@
-# Apache URL Rewriting for clean URLs
+# ===========================================
+# .htaccess PUBLIC - Configuration cPanel
+# ===========================================
+# Point d'entrée unique de l'application MVC
+# Compatible cPanel / Shared Hosting
+
+# Activer le moteur de réécriture
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # ===========================================
+    # CONFIGURATION SPÉCIFIQUE CPANEL
+    # ===========================================
+    
+    # Forcer HTTPS (optionnel - cPanel gère souvent SSL automatiquement)
+    # Décommentez si vous voulez forcer HTTPS
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    
+    # Gérer le dossier de base cPanel (si dans un sous-dossier)
+    # Ajustez /signatures selon votre structure
+    # RewriteBase /signatures/public/
+    
     RewriteBase /
     
-    # Rediriger vers index.php si le fichier n'existe pas
+    # ===========================================
+    # ROUTAGE MVC - Tout passe par index.php
+    # ===========================================
+    
+    # Si le fichier ou dossier existe physiquement, le servir
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Sinon, router vers index.php
     RewriteRule ^(.*)$ index.php [QSA,L]
+    
+    # ===========================================
+    # PROTECTION CONTRE LES ATTAQUES
+    # ===========================================
+    
+    # Bloquer les tentatives d'injection
+    RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|[|%[0-9A-Z]{0,2}) [OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|[|%[0-9A-Z]{0,2}) [OR]
+    RewriteCond %{QUERY_STRING} (mosConfig_[a-zA-Z_]{1,21})(=|%) [OR]
+    RewriteCond %{QUERY_STRING} base64_(en|de)code [OR]
+    RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC]
+    RewriteRule ^(.*)$ index.php [F,L]
 </IfModule>
 
-# Security headers
+# ===========================================
+# EN-TÊTES DE SÉCURITÉ
+# ===========================================
 <IfModule mod_headers.c>
+    # Protection XSS
     Header set X-Content-Type-Options "nosniff"
+    
+    # Protection clickjacking
     Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Protection XSS IE
     Header set X-XSS-Protection "1; mode=block"
+    
+    # Politique de referer
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Cache control pour les pages dynamiques
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
 </IfModule>
 
-# PHP settings
+# ===========================================
+# CONFIGURATION PHP
+# ===========================================
 <IfModule mod_php.c>
+    # Limites d'upload pour les signatures
     php_value upload_max_filesize 10M
     php_value post_max_size 10M
+    
+    # Timeout pour les opérations longues
     php_value max_execution_time 300
+    php_value max_input_time 300
+    
+    # Mémoire
+    php_value memory_limit 128M
+    
+    # Gestion des erreurs
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log ../logs/php_errors.log
 </IfModule>
 
-# Disable directory listing
+# ===========================================
+# DÉSACTIVER LE LISTAGE DES RÉPERTOIRES
+# ===========================================
 Options -Indexes
 
-# Cache static assets
+# ===========================================
+# CACHE DES FICHIERS STATIQUES
+# ===========================================
 <IfModule mod_expires.c>
     ExpiresActive On
+    
+    # Images - 1 mois
     ExpiresByType image/jpg "access plus 1 month"
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/gif "access plus 1 month"
     ExpiresByType image/png "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+    
+    # CSS et JS - 1 semaine
     ExpiresByType text/css "access plus 1 week"
     ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+    
+    # Fonts - 1 mois
+    ExpiresByType font/woff2 "access plus 1 month"
+    ExpiresByType font/woff "access plus 1 month"
+    ExpiresByType font/ttf "access plus 1 month"
+    ExpiresByType application/font-woff "access plus 1 month"
 </IfModule>
+
+# Compression Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# ===========================================
+# TYPES MIME
+# ===========================================
+<IfModule mod_mime.c>
+    AddType application/javascript js
+    AddType text/css css
+    AddType image/svg+xml svg
+    AddType application/json json
+    AddType image/webp webp
+</IfModule>
+
+# ===========================================
+# CARACTÈRES SPÉCIAUX
+# ===========================================
+AddDefaultCharset UTF-8
+
+# ===========================================
+# PAGE D'ERREUR PERSONNALISÉE (optionnel)
+# ===========================================
+# ErrorDocument 404 /index.php
+# ErrorDocument 500 /index.php
