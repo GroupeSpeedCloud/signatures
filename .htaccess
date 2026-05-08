@@ -1,41 +1,27 @@
 # ===========================================
-# .htaccess RACINE - Configuration cPanel
+# .htaccess RACINE - À SUPPRIMER SUR LE SERVEUR
 # ===========================================
-# IMPORTANT: À placer dans le dossier principal (public_html ou signatures)
-# L'application doit être dans un sous-dossier ou utiliser un sous-domaine
+# Ce fichier ne doit PAS être déployé sur le serveur
+# si le DocumentRoot pointe déjà vers public/
+# 
+# Sur cPanel avec sous-domaine pointant vers public/
+# SUPPRIMEZ ce fichier du serveur.
+#
+# Gardez uniquement :
+# - public/.htaccess (pour le routage)
+# - assets/.htaccess (optionnel)
+# ===========================================
 
-# Activer le moteur de réécriture
+# Pour développement local uniquement
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
     
-    # ===========================================
-    # OPTION 1: Application dans un sous-dossier
-    # ===========================================
-    # Si l'application est dans public_html/signatures/
-    # Rediriger tout vers le dossier public/
-    
-    # Ne pas traiter les dossiers déjà dans public/
+    # Rediriger vers public/ (LOCAL UNIQUEMENT)
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteCond %{REQUEST_URI} !^/assets/
     RewriteCond %{REQUEST_URI} !^/uploads/
-    RewriteCond %{REQUEST_URI} !^/\.well-known/
-    RewriteCond %{REQUEST_URI} !^/cpanel/
-    RewriteCond %{REQUEST_URI} !^/webmail/
-    
-    # Rediriger vers public/
     RewriteRule ^(.*)$ public/$1 [L]
-    
-    # ===========================================
-    # OPTION 2: Application à la racine (sous-domaine)
-    # ===========================================
-    # Si vous utilisez un sous-domaine (signatures.domaine.com)
-    # Décommentez cette section et commentez l'option 1
-    
-    # RewriteCond %{REQUEST_URI} !^/public/
-    # RewriteCond %{REQUEST_URI} !^/assets/
-    # RewriteCond %{REQUEST_URI} !^/uploads/
-    # RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
 # ===========================================
