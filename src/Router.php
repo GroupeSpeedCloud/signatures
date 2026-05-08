@@ -86,7 +86,8 @@ class Router
 
         if (!isset($this->routes[$routeKey])) {
             http_response_code(404);
-            echo "Page non trouvée";
+            $errorMessage = 'Page non trouvée (404)';
+            require __DIR__ . '/../views/error.php';
             return;
         }
 

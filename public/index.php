@@ -23,9 +23,3 @@ $router = new \App\Router($config);
 
 // Dispatcher la requête
 $router->dispatch();
-
-// Initialiser le routeur
-$router = new \App\Router($config);
-
-// Dispatcher la requête
-$router->dispatch();
