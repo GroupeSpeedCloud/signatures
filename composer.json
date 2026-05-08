@@ -10,5 +10,13 @@
         "psr-4": {
             "App\\": "src/"
         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "mkdir -p uploads/signatures"
+        ]
+    },
+    "config": {
+        "sort-packages": true
     }
 }

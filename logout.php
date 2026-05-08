@@ -1,4 +1,7 @@
 <?php
-session_start();
-session_destroy();
-header('Location: /');
+/**
+ * Fichier de compatibilité - redirige vers le routeur
+ * Ce fichier sera supprimé dans une future version
+ */
+header('Location: /logout');
+exit;

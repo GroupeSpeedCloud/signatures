@@ -1,23 +1,29 @@
-# Dependencies
-/vendor/
-
-# Environment / Config (contains secrets)
-config.php
-service-account.json
+# Logs
+*.log
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Configuration sensible (garder config.example.php)
+config.php
 
-# Uploads (images générées)
-uploads/signatures/*
-!uploads/.gitkeep
-!uploads/signatures/.gitkeep
+# Uploads
+uploads/
+
+# Vendor (installé via composer)
+vendor/
+
+# Node modules (si utilisation d'outils JS)
+node_modules/
+
+# Build artifacts
+dist/
+build/

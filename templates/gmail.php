@@ -1,24 +1,27 @@
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: 'Titillium Web', Arial, Helvetica, sans-serif; font-size: 13px; color: #333333; line-height: 1.5; max-width: 500px;">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: 'Titillium Web', Arial, Helvetica, sans-serif; font-size: 13px; color: #333333; line-height: 1.45; max-width: 520px; border-collapse: collapse;">
   <tbody>
     <tr>
-      <td style="vertical-align: middle; padding-right: 15px; border-right: 3px solid #8a4dfd;">
-        <img src="<?= $company['logo'] ?>" alt="<?= $company['name'] ?>" width="70" height="70" style="display: block; border-radius: 8px;">
+      <td style="vertical-align: top; padding-right: 14px; border-right: 2px solid #8a4dfd; width: 84px;">
+        <img src="<?= htmlspecialchars($company['logo']) ?>" alt="<?= htmlspecialchars($company['name']) ?>" width="70" height="70" style="display: block; border-radius: 8px; border: 0;">
       </td>
-      <td style="vertical-align: middle; padding-left: 15px;">
-        <!-- Name -->
-        <p style="margin: 0 0 2px 0; font-size: 16px; font-weight: bold; color: #1a1a1a;">👤 <?= $name ?></p>
+      <td style="vertical-align: top; padding-left: 14px;">
+        <p style="margin: 0; font-size: 16px; line-height: 20px; font-weight: 700; color: #1f2937;"><?= $name ?></p>
         <?php if ($job): ?>
-        <p style="margin: 0 0 8px 0; font-size: 13px; color: #8a4dfd; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">💼 <?= $job ?></p>
+        <p style="margin: 3px 0 10px 0; font-size: 12px; line-height: 16px; color: #8a4dfd; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;"><?= $job ?></p>
         <?php else: ?>
-        <p style="margin: 0 0 8px 0;"></p>
+        <div style="height: 10px; line-height: 10px;">&nbsp;</div>
         <?php endif; ?>
-        
-        <!-- Contact line -->
-        <p style="margin: 0; font-size: 12px; color: #555555;">
-          ✉️ <a href="mailto:<?= $email ?>" style="color: #555555; text-decoration: none;"><?= $email ?></a>
-          <span style="color: #ccc; margin: 0 8px;">|</span>
-          🌐 <a href="<?= $company['website'] ?>" style="color: #8a4dfd; text-decoration: none; font-weight: 600;"><?= $company['domain'] ?></a>
-        </p>
+
+        <table cellpadding="0" cellspacing="0" border="0" style="font-size: 12px; color: #4b5563; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0 8px 4px 0; color: #6b7280;">E-mail</td>
+            <td style="padding: 0 0 4px 0;"><a href="mailto:<?= $email ?>" style="color: #4b5563; text-decoration: none;"><?= $email ?></a></td>
+          </tr>
+          <tr>
+            <td style="padding: 0 8px 0 0; color: #6b7280;">Site</td>
+            <td style="padding: 0;"><a href="<?= htmlspecialchars($company['website']) ?>" style="color: #8a4dfd; text-decoration: none; font-weight: 600;"><?= htmlspecialchars($company['domain']) ?></a></td>
+          </tr>
+        </table>
       </td>
     </tr>
   </tbody>
