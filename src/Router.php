@@ -30,24 +30,47 @@ class Router
         // Routes publiques
         $this->routes['GET /'] = function() {
             if (isset($_SESSION['user'])) {
-                $this->dispatch('signature.generator');
+                $controller = $this->getController('signature');
+                $controller->showGenerator();
             } else {
-                $this->dispatch('auth.login');
+                $controller = $this->getController('auth');
+                $controller->showLogin();
             }
         };
 
         // Routes d'authentification
-        $this->routes['GET /auth'] = 'auth.login';
-        $this->routes['GET /callback'] = 'auth.callback';
-        $this->routes['GET /logout'] = 'auth.logout';
+        $this->routes['GET /auth'] = function() {
+            $controller = $this->getController('auth');
+            $controller->showLogin();
+        };
+        $this->routes['GET /callback'] = function() {
+            $controller = $this->getController('auth');
+            $controller->callback();
+        };
+        $this->routes['GET /logout'] = function() {
+            $controller = $this->getController('auth');
+            $controller->logout();
+        };
 
         // Routes de signatures
-        $this->routes['GET /signatures'] = 'signature.generator';
-        $this->routes['GET /signature'] = 'signature.render';
-        $this->routes['POST /upload-signature'] = 'signature.upload';
+        $this->routes['GET /signatures'] = function() {
+            $controller = $this->getController('signature');
+            $controller->showGenerator();
+        };
+        $this->routes['GET /signature'] = function() {
+            $controller = $this->getController('signature');
+            $controller->render();
+        };
+        $this->routes['POST /upload-signature'] = function() {
+            $controller = $this->getController('signature');
+            $controller->upload();
+        };
 
         // Routes Chibi
-        $this->routes['GET /chibi'] = 'chibi.show';
+        $this->routes['GET /chibi'] = function() {
+            $controller = $this->getController('chibi');
+            $controller->show();
+        };
     }
 
     /**
