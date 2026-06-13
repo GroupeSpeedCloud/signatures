@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App;
 
 use App\Controllers\AuthController;
@@ -8,120 +10,71 @@ use App\Controllers\ChibiController;
 use App\Services\AuthService;
 use App\Services\SignatureService;
 
-/**
- * Routeur de l'application
- */
 class Router
 {
     private array $config;
-    private array $routes = [];
 
     public function __construct(array $config)
     {
         $this->config = $config;
-        $this->defineRoutes();
     }
 
-    /**
-     * Définit toutes les routes de l'application
-     */
-    private function defineRoutes(): void
+    public function dispatch(): void
     {
-        // Routes publiques
-        $this->routes['GET /'] = function() {
-            if (isset($_SESSION['user'])) {
-                $controller = $this->getController('signature');
-                $controller->showGenerator();
-            } else {
-                $controller = $this->getController('auth');
-                $controller->showLogin();
-            }
-        };
+        $method = $_SERVER['REQUEST_METHOD'];
+        $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $key    = "{$method} {$uri}";
 
-        // Routes d'authentification
-        $this->routes['GET /auth'] = function() {
-            $controller = $this->getController('auth');
-            $controller->showLogin();
-        };
-        $this->routes['GET /callback'] = function() {
-            $controller = $this->getController('auth');
-            $controller->callback();
-        };
-        $this->routes['GET /logout'] = function() {
-            $controller = $this->getController('auth');
-            $controller->logout();
-        };
-
-        // Routes de signatures
-        $this->routes['GET /signatures'] = function() {
-            $controller = $this->getController('signature');
-            $controller->showGenerator();
-        };
-        $this->routes['GET /signature'] = function() {
-            $controller = $this->getController('signature');
-            $controller->render();
-        };
-        $this->routes['POST /upload-signature'] = function() {
-            $controller = $this->getController('signature');
-            $controller->upload();
-        };
-
-        // Routes Chibi
-        $this->routes['GET /chibi'] = function() {
-            $controller = $this->getController('chibi');
-            $controller->show();
+        match ($key) {
+            'GET /'                  => $this->home(),
+            'GET /auth'              => $this->auth()->showLogin(),
+            'GET /callback'          => $this->auth()->callback(),
+            'GET /logout'            => $this->auth()->logout(),
+            'GET /signatures'        => $this->guard(fn() => $this->signature()->showGenerator()),
+            'GET /signature'         => $this->guard(fn() => $this->signature()->render()),
+            'POST /upload-signature' => $this->guard(fn() => $this->signature()->upload()),
+            'GET /chibi'             => $this->guard(fn() => $this->chibi()->show()),
+            default                  => $this->notFound(),
         };
     }
 
-    /**
-     * Dispatch la requête vers le bon contrôleur
-     */
-    public function dispatch(?string $routeKey = null): void
+    private function home(): void
     {
-        if ($routeKey === null) {
-            $method = $_SERVER['REQUEST_METHOD'];
-            $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-            $routeKey = "{$method} {$uri}";
-        }
-
-        if (!isset($this->routes[$routeKey])) {
-            http_response_code(404);
-            $errorMessage = 'Page non trouvée (404)';
-            require __DIR__ . '/../views/error.php';
-            return;
-        }
-
-        $handler = $this->routes[$routeKey];
-
-        if (is_callable($handler)) {
-            $handler();
-            return;
-        }
-
-        // Appeler le contrôleur
-        [$controllerName, $action] = explode('.', $handler);
-        $controller = $this->getController($controllerName);
-        
-        if (method_exists($controller, $action)) {
-            $controller->$action();
+        if (isset($_SESSION['user'])) {
+            $this->signature()->showGenerator();
+        } else {
+            $this->auth()->showLogin();
         }
     }
 
-    /**
-     * Instancie un contrôleur
-     */
-    private function getController(string $name): object
+    private function guard(callable $handler): void
     {
-        return match($name) {
-            'auth' => new AuthController(
-                new AuthService($this->config['google'])
-            ),
-            'signature' => new SignatureController(
-                new SignatureService($this->config),
-                $this->config
-            ),
-            'chibi' => new ChibiController(),
-            default => throw new \Exception("Contrôleur inconnu: {$name}")
-        };
+        if (!isset($_SESSION['user'])) {
+            header('Location: /');
+            exit;
+        }
+        $handler();
+    }
+
+    private function notFound(): void
+    {
+        http_response_code(404);
+        $errorMessage = 'Page introuvable (404)';
+        include __DIR__ . '/../views/error.php';
+    }
+
+    private function auth(): AuthController
+    {
+        return new AuthController(new AuthService($this->config['google']));
+    }
+
+    private function signature(): SignatureController
+    {
+        return new SignatureController(new SignatureService($this->config), $this->config);
+    }
+
+    private function chibi(): ChibiController
+    {
+        return new ChibiController($this->config);
     }
 }

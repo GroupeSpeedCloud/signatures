@@ -1,24 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
-/**
- * Contrôleur pour le générateur de Chibi
- */
 class ChibiController
 {
-    /**
-     * Affiche le générateur de chibi
-     */
+    private array $config;
+
+    public function __construct(array $config)
+    {
+        $this->config = $config;
+    }
+
     public function show(): void
     {
-        session_start();
-        
-        if (!isset($_SESSION['user'])) {
-            header('Location: /');
-            exit;
-        }
-        
+        $user = $_SESSION['user'];
+        $jobs = $this->config['jobs'] ?? [];
+
         include __DIR__ . '/../../views/chibi.php';
     }
 }
