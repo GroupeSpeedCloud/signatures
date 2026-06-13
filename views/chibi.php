@@ -1,8 +1,6 @@
 <?php
-$user = $_SESSION['user'];
-$config = require __DIR__ . '/../config.php';
+// $user et $jobs sont injectés par ChibiController
 $currentPage = 'avatar';
-$jobs = $config['jobs'] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
