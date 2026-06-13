@@ -24,14 +24,13 @@ class SignatureService
 
     private function generatePersonalSignature(array $params, array $user): array
     {
-        $jobRaw = $params['job'] ?? '';
-
         return [
-            'name'  => $this->sanitize($params['name']  ?? $user['name']),
-            'job'   => $this->sanitize($jobRaw),
-            'email' => $this->sanitize($params['email'] ?? $user['email']),
-            'phone' => $this->sanitize($params['phone'] ?? ''),
-            'type'  => 'personal',
+            'name'     => $this->sanitize($params['name']     ?? $user['name']),
+            'job'      => $this->sanitize($params['job']      ?? ''),
+            'email'    => $this->sanitize($params['email']    ?? $user['email']),
+            'phone'    => $this->sanitize($params['phone']    ?? ''),
+            'linkedin' => $this->sanitizeUrl($params['linkedin'] ?? ''),
+            'type'     => 'personal',
         ];
     }
 
@@ -47,11 +46,12 @@ class SignatureService
         $service = $services[$serviceKey];
 
         return [
-            'name'  => $this->sanitize($service['name']  ?? ''),
-            'job'   => '',
-            'email' => $this->sanitize($service['email'] ?? ''),
-            'phone' => $this->sanitize($service['phone'] ?? ''),
-            'type'  => 'service',
+            'name'     => $this->sanitize($service['name']  ?? ''),
+            'job'      => '',
+            'email'    => $this->sanitize($service['email'] ?? ''),
+            'phone'    => $this->sanitize($service['phone'] ?? ''),
+            'linkedin' => '',
+            'type'     => 'service',
         ];
     }
 
@@ -95,5 +95,14 @@ class SignatureService
     private function sanitize(string $value): string
     {
         return htmlspecialchars(trim($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    private function sanitizeUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') return '';
+        $parsed = parse_url($url);
+        if (!isset($parsed['scheme']) || !in_array($parsed['scheme'], ['http', 'https'], true)) return '';
+        return htmlspecialchars($url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }
