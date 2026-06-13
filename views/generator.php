@@ -148,6 +148,13 @@
                             placeholder="+33 3 24 00 00 00"
                             class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors">
                     </div>
+                    <div>
+                        <label class="text-xs font-medium text-zinc-400 mb-1.5 block">LinkedIn <span class="text-zinc-600">(optionnel)</span></label>
+                        <input type="url" id="linkedin"
+                            value=""
+                            placeholder="https://linkedin.com/in/prenom-nom"
+                            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500 transition-colors">
+                    </div>
                 </div>
 
                 <!-- Formulaire service -->
@@ -333,11 +340,12 @@
             const params = new URLSearchParams({
                 style:   currentStyle,
                 type:    currentType,
-                name:    document.getElementById('name')?.value  || '',
-                job:     getJobValue(),
-                email:   document.getElementById('email')?.value || '',
-                phone:   document.getElementById('phone')?.value || '',
-                service: document.getElementById('service')?.value || '',
+                name:     document.getElementById('name')?.value     || '',
+                job:      getJobValue(),
+                email:    document.getElementById('email')?.value    || '',
+                phone:    document.getElementById('phone')?.value    || '',
+                linkedin: document.getElementById('linkedin')?.value || '',
+                service:  document.getElementById('service')?.value  || '',
             });
 
             fetch('/signature?' + params)
@@ -408,7 +416,7 @@
         }
 
         // Listeners
-        ['name', 'email', 'phone'].forEach(id => {
+        ['name', 'email', 'phone', 'linkedin'].forEach(id => {
             document.getElementById(id)?.addEventListener('input', scheduleUpdate);
         });
         document.getElementById('job')?.addEventListener('change', () => {
