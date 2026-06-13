@@ -20,8 +20,14 @@ class SignatureController
     public function showGenerator(): void
     {
         $user     = $_SESSION['user'];
+        $gender   = $user['gender'] ?? 'm';
         $services = $this->config['services'] ?? [];
-        $jobs     = $this->config['jobs'] ?? [];
+
+        // Résoudre la variante genrée de chaque poste
+        $jobs = array_map(
+            fn($j) => is_array($j) ? ($j[$gender] ?? $j['m'] ?? '') : $j,
+            $this->config['jobs'] ?? []
+        );
 
         include __DIR__ . '/../../views/generator.php';
     }

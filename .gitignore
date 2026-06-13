@@ -18,6 +18,9 @@ config.php
 # Uploads
 uploads/
 
+# Données utilisateurs (JSON genre, etc.)
+data/users/*.json
+
 # Vendor (installé via composer)
 vendor/
 
