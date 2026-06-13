@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Services\AuthService;
+use App\Services\UserService;
 
 class AuthController
 {
     private AuthService $authService;
+    private UserService $userService;
 
-    public function __construct(AuthService $authService)
+    public function __construct(AuthService $authService, UserService $userService)
     {
         $this->authService = $authService;
+        $this->userService = $userService;
     }
 
     public function showLogin(): void
@@ -29,7 +32,16 @@ class AuthController
         }
 
         try {
-            $_SESSION['user'] = $this->authService->authenticate($_GET['code']);
+            $userData = $this->authService->authenticate($_GET['code']);
+
+            // Charger le genre persisté (JSON) si déjà renseigné
+            $gender = $this->userService->getGender($userData['email']);
+            if ($gender !== null) {
+                $userData['gender'] = $gender;
+            }
+
+            $_SESSION['user'] = $userData;
+
             header('Location: /');
             exit;
         } catch (\Exception $e) {

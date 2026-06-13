@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App;
 
 use App\Controllers\AuthController;
+use App\Controllers\OnboardingController;
 use App\Controllers\SignatureController;
 use App\Controllers\ChibiController;
 use App\Services\AuthService;
 use App\Services\SignatureService;
+use App\Services\UserService;
 
 class Router
 {
@@ -31,6 +33,8 @@ class Router
             'GET /callback'          => $this->auth()->callback(),
             'GET /callback.php'      => $this->auth()->callback(),
             'GET /logout'            => $this->auth()->logout(),
+            'GET /onboarding'        => $this->guard(fn() => $this->onboarding()->show(), bypass: true),
+            'POST /onboarding'       => $this->guard(fn() => $this->onboarding()->save(), bypass: true),
             'GET /signatures'        => $this->guard(fn() => $this->signature()->showGenerator()),
             'GET /signature'         => $this->guard(fn() => $this->signature()->render()),
             'POST /upload-signature' => $this->guard(fn() => $this->signature()->upload()),
@@ -41,17 +45,28 @@ class Router
 
     private function home(): void
     {
-        if (isset($_SESSION['user'])) {
-            $this->signature()->showGenerator();
-        } else {
+        if (!isset($_SESSION['user'])) {
             $this->auth()->showLogin();
+            return;
         }
+        if (!isset($_SESSION['user']['gender'])) {
+            header('Location: /onboarding');
+            exit;
+        }
+        $this->signature()->showGenerator();
     }
 
-    private function guard(callable $handler): void
+    /**
+     * @param bool $bypass Autoriser l'accès même sans genre défini (page onboarding elle-même).
+     */
+    private function guard(callable $handler, bool $bypass = false): void
     {
         if (!isset($_SESSION['user'])) {
             header('Location: /');
+            exit;
+        }
+        if (!$bypass && !isset($_SESSION['user']['gender'])) {
+            header('Location: /onboarding');
             exit;
         }
         $handler();
@@ -66,7 +81,12 @@ class Router
 
     private function auth(): AuthController
     {
-        return new AuthController(new AuthService($this->config['google']));
+        return new AuthController(new AuthService($this->config['google']), new UserService());
+    }
+
+    private function onboarding(): OnboardingController
+    {
+        return new OnboardingController(new UserService());
     }
 
     private function signature(): SignatureController
