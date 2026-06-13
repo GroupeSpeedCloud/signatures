@@ -29,6 +29,7 @@ class Router
             'GET /'                  => $this->home(),
             'GET /auth'              => $this->auth()->showLogin(),
             'GET /callback'          => $this->auth()->callback(),
+            'GET /callback.php'      => $this->auth()->callback(),
             'GET /logout'            => $this->auth()->logout(),
             'GET /signatures'        => $this->guard(fn() => $this->signature()->showGenerator()),
             'GET /signature'         => $this->guard(fn() => $this->signature()->render()),
